@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_superheroes/data/model/superheroe_detail_response.dart';
 import 'package:flutter_superheroes/data/model/superheroe_response.dart';
 import 'package:flutter_superheroes/data/repository.dart';
 
@@ -33,22 +34,45 @@ class _SuperheroSearchScreenState extends State<SuperheroSearchScreen> {
               },
             ),
           ),
-          FutureBuilder(
-            future: _superheroInfo,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text("Error: ${snapshot.error}");
-              } else if (snapshot.hasData) {
-                return Text("${snapshot.data?.response}");
-              } else {
-                return Text("No hay resultados");
-              }
-            },
-          ),
+          bodyList(),
         ],
       ),
     );
   }
+
+  FutureBuilder<SuperheroeResponse?> bodyList() {
+    return FutureBuilder(
+          future: _superheroInfo,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text("Error: ${snapshot.error}");
+            } else if (snapshot.hasData) {
+              var superheroList = snapshot.data?.result;
+              return Expanded(                  
+                child: ListView.builder(
+                  itemCount: superheroList?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    if (superheroList != null) {
+                      return itemSuperhero(superheroList[index]);
+                    } else {
+                      return Text("Error");
+                    }
+                  },
+                ),
+              );
+            } else {
+              return Text("No hay resultados");
+            }
+          },
+        );
+  }
+
+  Column itemSuperhero(SuperheroeDetailResponse item) => Column(
+    children: [
+      Image.network(item.url, height: 250, width: double.infinity, fit: BoxFit.cover, alignment: Alignment.center),
+      Text(item.name)
+    ],
+  );
 }
